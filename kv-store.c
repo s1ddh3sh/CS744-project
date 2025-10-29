@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "kv-store.h"
 #include "db.h"
 
@@ -58,21 +59,34 @@ char *kv_get(kv_store *store, char *key)
         kv_pair *p = &store->pairs[idx(store, i)];
         if (strcmp(p->key, key) == 0)
         {
-            return p->value;
+            char *ret = p->value;
+            pthread_mutex_unlock(&store->mutex);
+            return ret;
         }
     }
     pthread_mutex_unlock(&store->mutex);
 
     // Cache miss - check in DB
     char *val = db_get(key);
-    if (val != NULL)
-    {
-        pthread_mutex_lock(&store->mutex);
-        kv_create(store, key, val, strlen(val));
-        pthread_mutex_unlock(&store->mutex);
+    if (val == NULL)
+        return NULL;
 
-        return val;
+    kv_create(store, key, val, strlen(val));
+
+    free(val);
+    pthread_mutex_lock(&store->mutex);
+    for (int i = 0; i < store->count; i++)
+    {
+        kv_pair *p = &store->pairs[idx(store, i)];
+        if (strcmp(p->key, key) == 0)
+        {
+            char *ret = p->value;
+            pthread_mutex_unlock(&store->mutex);
+            return ret;
+        }
     }
+    pthread_mutex_unlock(&store->mutex);
+
     return NULL;
 }
 
@@ -88,6 +102,7 @@ bool kv_update(kv_store *store, char *key, char *value, int len)
             int len2 = (len < (int)sizeof(p->value) - 1) ? len : (int)sizeof(p->value) - 1;
             strncpy(p->value, value, len2);
             p->value[len2] = '\0';
+            pthread_mutex_unlock(&store->mutex);
             return 1;
         }
     }
@@ -112,6 +127,7 @@ bool kv_delete(kv_store *store, char *key)
                 store->pairs[to] = store->pairs[from];
             }
             store->count--;
+            pthread_mutex_unlock(&store->mutex);
             return 1;
         }
     }
