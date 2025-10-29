@@ -21,20 +21,25 @@ static inline int idx(const kv_store *store, int i)
 
 bool kv_create(kv_store *store, char *key, char *value, int len)
 {
+    kv_pair victim;
+    bool evicted = false;
+
     pthread_mutex_lock(&store->mutex);
     for (int i = 0; i < store->count; i++)
     {
         if (strcmp(store->pairs[idx(store, i)].key, key) == 0)
+        {
+            pthread_mutex_unlock(&store->mutex);
             return 0;
+        }
     }
     // Cache full, do FCFS evict
     if (store->count == MAX_PAIRS)
     {
-        kv_pair victim = store->pairs[store->start];
-        db_insert(victim.key, victim.value);
-
+        victim = store->pairs[store->start];
         store->start = (store->start + 1) % MAX_PAIRS;
         store->count--;
+        evicted = true;
     }
     int index = (store->start + store->count) % MAX_PAIRS;
     kv_pair *newp = &store->pairs[index];
@@ -48,6 +53,10 @@ bool kv_create(kv_store *store, char *key, char *value, int len)
 
     store->count++;
     pthread_mutex_unlock(&store->mutex);
+    if (evicted)
+    {
+        db_insert(victim.key, victim.value); // writeback the evicted to db
+    }
     return 1;
 }
 
@@ -65,28 +74,6 @@ char *kv_get(kv_store *store, char *key)
         }
     }
     pthread_mutex_unlock(&store->mutex);
-
-    // Cache miss - check in DB
-    char *val = db_get(key);
-    if (val == NULL)
-        return NULL;
-
-    kv_create(store, key, val, strlen(val));
-
-    free(val);
-    pthread_mutex_lock(&store->mutex);
-    for (int i = 0; i < store->count; i++)
-    {
-        kv_pair *p = &store->pairs[idx(store, i)];
-        if (strcmp(p->key, key) == 0)
-        {
-            char *ret = p->value;
-            pthread_mutex_unlock(&store->mutex);
-            return ret;
-        }
-    }
-    pthread_mutex_unlock(&store->mutex);
-
     return NULL;
 }
 

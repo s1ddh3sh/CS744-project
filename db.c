@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <stdbool.h>
 
 #include "db.h"
 
@@ -30,7 +31,7 @@ void db_init()
     pthread_mutex_unlock(&db_mutex);
 }
 
-void db_insert(const char *key, const char *value)
+bool db_insert(const char *key, const char *value)
 {
     char query[512];
     snprintf(query, sizeof(query),
@@ -42,9 +43,11 @@ void db_insert(const char *key, const char *value)
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         fprintf(stderr, "[DB ERROR] Insert failed for key='%s': %s\n", key, PQerrorMessage(conn));
+        return 0;
     }
     PQclear(res);
     pthread_mutex_unlock(&db_mutex);
+    return 1;
 }
 
 char *db_get(const char *key)
@@ -75,7 +78,7 @@ char *db_get(const char *key)
     return val;
 }
 
-void db_delete(const char *key)
+bool db_delete(const char *key)
 {
     char query[512];
     snprintf(query, sizeof(query), "DELETE FROM kv_table WHERE key='%s';", key);
@@ -85,8 +88,16 @@ void db_delete(const char *key)
     {
         fprintf(stderr, "[DB ERROR] Delete failed for key='%s': %s\n",
                 key, PQerrorMessage(conn));
+        return 0;
     }
     PQclear(res);
+    pthread_mutex_unlock(&db_mutex);
+    return 1;
+}
+void db_clear()
+{
+    pthread_mutex_lock(&db_mutex);
+    PQexec(conn, "DELETE FROM kv_table;");
     pthread_mutex_unlock(&db_mutex);
 }
 

@@ -17,45 +17,81 @@ int main()
                 {
         auto key = req.get_param_value("key");
         auto value = req.get_param_value("value");
-        
-        kv_create(&cache, (char*)key.c_str(),(char*)value.c_str(), value.size()); 
-        //insert into db
-        db_insert(key.c_str(), value.c_str());
-        std::cout << "[CREATE] key=" << key << " inserted.\n";
 
-        res.set_content("Inserted", "text/plain"); });
+       if (db_insert(key.c_str(), value.c_str())) {
+        // Then update cache
+        bool created = kv_create(&cache, (char *)key.c_str(), 
+                               (char *)value.c_str(), value.size());
+        res.status = created ? 201 : 200;
+        std::cout << "[CREATE] key=" << key << 
+                    (created ? " inserted" : " updated") << " (cache+db)\n";
+        res.set_content(created ? "Inserted\n" : "Updated\n", "text/plain");
+    } else {
+        res.set_content("DB Error\n", "text/plain");
+        res.status = 500;
+    } });
 
     server.Get("/get", [](const httplib::Request &req, httplib::Response &res)
                {
         auto key = req.get_param_value("key");
         char *val = kv_get(&cache, (char*)key.c_str());
-        if(val == NULL){
-            // cache miss, get from db
-            std::cout << "[CACHE MISS] key=" << key << " -> fetching from DB\n";
-
-            val = db_get(key.c_str());
-            if(val) {
-                kv_create(&cache, (char*)key.c_str(), val, strlen(val));
-                std::cout << "[DB HIT] key=" << key << " value=" << val << "\n";
-            }
-            else {
-                std::cout << "[DB MISS] key=" << key << "\n";
-            }
-        }
-        else {
+        if (val) {
+            // cache hit
             std::cout << "[CACHE HIT] key=" << key << " value=" << val << "\n";
+            res.set_content(val, "text/plain");
+           
+            return;
         }
-        res.set_content(val ? val : "Not found", "text/plain"); });
+
+        // Cache miss -> go to DB
+        std::cout << "[CACHE MISS] key=" << key << " -> querying DB\n";
+        char *dbval = db_get(key.c_str());
+
+        if (dbval) {
+            std::cout << "[DB HIT] key=" << key << " value=" << dbval << "\n";
+            // Insert into cache 
+            kv_create(&cache, (char*)key.c_str(), dbval, strlen(dbval));
+            res.set_content(dbval, "text/plain");
+            free(dbval); 
+        } else {
+            std::cout << "[DB MISS] key=" << key << " not found\n";
+            res.status = 404;
+            res.set_content("Not found", "text/plain");
+        } });
 
     server.Delete("/delete", [](const httplib::Request &req, httplib::Response &res)
                   {
         auto key = req.get_param_value("key");
-        kv_delete(&cache, (char*)key.c_str());
-        db_delete(key.c_str());
-        std::cout << "[DELETE] key=" << key << " deleted\n";
+        bool removed = kv_delete(&cache, (char*)key.c_str());
+        if (!db_delete(key.c_str())) {
+            res.status = 500;
+            res.set_content("Database error\n", "text/plain");
+            return;
+        }
+        res.status = removed ? 200 : 404;
+        if (removed)
+            std::cout << "[DELETE] key=" << key << " removed (cache+db)\n";
+        else
+            std::cout << "[DELETE] key=" << key << " not found in cache (still removed from db)\n";
+
         res.set_content("Deleted\n", "text/plain"); });
+
+    server.Post("/preload", [](const httplib::Request &req, httplib::Response &res)
+                {
+    auto key = req.get_param_value("key");
+    auto value = req.get_param_value("value");
+    db_insert(key.c_str(), value.c_str());
+    res.set_content("Preloaded", "text/plain"); });
+
+    server.Delete("/clear", [](const httplib::Request &, httplib::Response &res)
+                  {
+        db_clear();   
+        init(&cache);
+        std::cout << "[SERVER] Database and cache cleared.\n";
+        res.set_content("Database and cache cleared.\n", "text/plain"); });
 
     std::cout << "Server running on http://localhost:8080\n";
     server.listen("0.0.0.0", 8080);
     db_close();
+    return 0;
 }
