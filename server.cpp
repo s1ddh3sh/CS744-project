@@ -1,3 +1,4 @@
+#define CPPHTTPLIB_THREAD_POOL_COUNT 8
 #include "httplib.h"
 
 #include "kv-store.h"
@@ -5,6 +6,8 @@
 #include <iostream>
 
 kv_store cache;
+std::atomic<long long> cache_hits{0};
+std::atomic<long long> cache_misses{0};
 
 int main()
 {
@@ -37,6 +40,7 @@ int main()
         char *val = kv_get(&cache, (char*)key.c_str());
         if (val) {
             // cache hit
+            cache_hits.fetch_add(1);
             std::cout << "[CACHE HIT] key=" << key << " value=" << val << "\n";
             res.set_content(val, "text/plain");
            
@@ -44,6 +48,7 @@ int main()
         }
 
         // Cache miss -> go to DB
+        cache_misses.fetch_add(1);
         std::cout << "[CACHE MISS] key=" << key << " -> querying DB\n";
         char *dbval = db_get(key.c_str());
 
@@ -83,12 +88,28 @@ int main()
     db_insert(key.c_str(), value.c_str());
     res.set_content("Preloaded", "text/plain"); });
 
-    server.Delete("/clear", [](const httplib::Request &, httplib::Response &res)
+    server.Delete("/clear", [](const httplib::Request &req, httplib::Response &res)
                   {
         db_clear();   
         init(&cache);
+        cache_hits = 0;
+        cache_misses = 0;
         std::cout << "[SERVER] Database and cache cleared.\n";
         res.set_content("Database and cache cleared.\n", "text/plain"); });
+
+    server.Get("/cache-stats", [](const httplib::Request &req, httplib::Response &res)
+               {
+        long long total_accesses = cache_hits.load() + cache_misses.load();
+        long long hits = cache_hits.load();
+        long long misses = cache_misses.load();
+        double hit_rate = total_accesses > 0 ? (double)hits/(double)total_accesses*100.0 : 0.0;
+
+        std::string resp = "TotalAccesses:" + std::to_string(total_accesses) + 
+                            "\nHits:" + std::to_string(hits) + 
+                            "\nMisses:" + std::to_string(misses) + 
+                            "\nHitRate:" + std::to_string(hit_rate) + "%\n";
+        res.set_content(resp, "text/plain");
+        res.status=200; });
 
     std::cout << "Server running on http://localhost:8080\n";
     server.listen("0.0.0.0", 8080);

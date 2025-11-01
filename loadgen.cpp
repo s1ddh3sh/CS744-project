@@ -13,7 +13,7 @@ using namespace std::chrono;
 
 const std::string SERVER_HOST = "localhost";
 const int SERVER_PORT = 8080;
-const int KEYSPACE_SIZE = 5000;         // for get_all and mixed
+const int KEYSPACE_SIZE = 5000;         // for prepopulation
 const int POPULAR_SET_SIZE = 1000;      // for get_popular
 const int MIXED_PUT_PCT = 20;           // 20% PUT
 const int MIXED_DELETE_PCT = 10;        // 10% DELETE, 70% GET
@@ -34,7 +34,6 @@ struct GlobalStats
     std::atomic<long long> total_latency_ns{0};
 };
 
-// Utility HTTP wrappers
 static void do_post_create(httplib::Client &cli, const std::string &key, const std::string &value,
                            bool &success, long long &latency_ns)
 {
@@ -104,6 +103,25 @@ void prepopulate_data(WorkloadType workload, int threads)
     }
 }
 
+void fetch_cache_stats()
+{
+    httplib::Client cli(SERVER_HOST.c_str(), SERVER_PORT);
+    auto res = cli.Get("/cache-stats");
+    if (res && res->status == 200)
+    {
+        std::cout << "\n===== Server Cache Stats (Fetched) =====\n";
+
+        std::string stats_output = res->body;
+        std::cout << stats_output;
+
+        std::cout << "======================================\n";
+    }
+    else
+    {
+        std::cerr << "\n[LOADGEN] Warning: Failed to fetch cache statistics.\n";
+    }
+}
+
 void client_thread(int thread_id, int duration_sec, WorkloadType workload, GlobalStats *gstats)
 {
     std::mt19937 rng(std::random_device{}());
@@ -150,7 +168,8 @@ void client_thread(int thread_id, int duration_sec, WorkloadType workload, Globa
         }
         case GET_ALL:
         {
-            std::string key = "get_" + std::to_string(seq++);
+            std::uniform_int_distribution<int> pick_key(0, KEYSPACE_SIZE - 1);
+            std::string key = "get_" + std::to_string(pick_key(rng));
             do_get(cli, key, success, latency_ns);
             break;
         }
@@ -230,7 +249,7 @@ int main(int argc, char **argv)
     std::cout << "Loadgen starting (" << threads << " threads, "
               << duration << "s, workload=" << workload_str << ")\n";
 
-    if (workload != MIXED && workload != PUT_ALL)
+    if (workload != PUT_ALL)
         prepopulate_data(workload, threads);
 
     GlobalStats gstats;
@@ -281,4 +300,6 @@ int main(int argc, char **argv)
               << "Average throughput (req/s): " << throughput << "\n"
               << "Average response time (ms): " << avg_latency_ms << "\n"
               << "=====================\n";
+    if (workload != PUT_ALL)
+        fetch_cache_stats();
 }
