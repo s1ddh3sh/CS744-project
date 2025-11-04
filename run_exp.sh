@@ -1,9 +1,14 @@
 #!/bin/bash
 
+if [ $# -ne 3 ]; then
+    echo "Usage: $0 <threads> <duration> <workload>"
+    echo "Example: $0 16 60 get_popular"
+    exit 1
+fi
 
-WORKLOAD="get_popular"
-DURATION=60
-THREADS=(8)
+WORKLOAD=$3
+DURATION=$2
+THREADS=$1
 
 RESULTS_DIR="results"
 
@@ -15,16 +20,13 @@ echo "Server started with PID $SERVER_PID"
 
 sleep 5
 
+echo "--- Running $WORKLOAD load with $THREADS threads on core: 2 ---"
 
-for THREADS in "${THREADS[@]}"; do
-    echo "--- Running $WORKLOAD with $THREADS threads on core: 2 ---"
+taskset -c 2 ./loadgen $THREADS $DURATION $WORKLOAD > $RESULTS_DIR/${WORKLOAD}/${THREADS}_threads.txt
 
-    taskset -c 2 ./loadgen $THREADS $DURATION $WORKLOAD > $RESULTS_DIR/${WORKLOAD}/${THREADS}threads.txt
-    
-    echo "Results saved to $RESULTS_DIR/${THREADS}_threads.txt"
-    sleep 10
+echo "Results saved to $RESULTS_DIR/${THREADS}_threads.txt"
+sleep 10
 
-done
 
 kill $SERVER_PID
 echo "Server stopped."

@@ -12,22 +12,23 @@ Simple key-value server with an in-memory cache and PostgreSQL database, with a 
 
 ## Run
 
-### Option 1 : Quick run
-Just run the `run_exp.sh` script to run for particular parameters. <br> (Note : Edit the params in the script)
-```bash
-bash run_exp.sh
-```
-This script handles all the setup and execution steps for you.
-
-### Option 2 : Run Manually
-
 1. Start PostgreSQL and ensure connection settings in `db.c` are correct.
 2. Bind postgres pid to core 0
 ```bash
-pgrep postgres #get the lowest pid
+pgrep postgres #get the lowest pid as postgres-pid
 sudo taskset -cp 0 {postgres-pid}
 ```
-2. Build the executables
+### Option 1 : Quick run via bash script
+Just run the `run_exp.sh` script to run for particular parameters. <br> Note : Pass the proper params as follows:
+```bash
+bash run_exp.sh [threads] [duration_sec] [workload]
+```
+This script handles all the setup and execution steps for you. <br>
+Outputs are stored in: `results/{WORKLOAD}/{THREADS}_threads.txt` 
+### Option 2 : Run Manually
+
+
+1. Build the executables
 ```bash
 make
 ```
