@@ -13,7 +13,7 @@ using namespace std::chrono;
 
 const std::string SERVER_HOST = "localhost";
 const int SERVER_PORT = 8080;
-const int KEYSPACE_SIZE = 5000;         // for prepopulation
+const int KEYSPACE_SIZE = 10000;        // for prepopulation
 const int POPULAR_SET_SIZE = 1000;      // for get_popular
 const int MIXED_PUT_PCT = 20;           // 20% PUT
 const int MIXED_DELETE_PCT = 10;        // 10% DELETE, 70% GET
