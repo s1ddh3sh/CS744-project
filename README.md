@@ -39,7 +39,7 @@ make
 ```
 2. Start server:
 ```bash
-taskset -c 0 ./server #server runs on core 0
+taskset -c 1 ./server #server runs on core 1
 ```
 Server runs on http://localhost:8080.
 
