@@ -8,7 +8,12 @@ Simple key-value server with an in-memory cache and PostgreSQL database, with a 
 - db.c - PostgreSQL access (libpq)
 - loadgen.cpp - multi-threaded closed-loop load generator for workload experiments
 
-## 
+## Workloads: 
+- `put_all` : 50% GET + 50% DELETE requests
+- `get_all` : random GET requests for 10000 keys
+- `get_popular` : random GET requests for popular 1000 keys
+- `mixed` : 70% GET + 20% PUT + 10% DELETE requests <br> <br>
+`pre-population` of keys is used to avoid any DBMISS.
 
 ## Run
 
@@ -44,4 +49,3 @@ Server runs on http://localhost:8080.
 taskset -c 2 ./loadgen 10 60 get_popular #loadgen runs on core 2
 ```
 
-Workloads: `put_all`, `get_all`, `get_popular`, `mixed` (see loadgen usage in code).

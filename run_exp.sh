@@ -11,7 +11,8 @@ DURATION=$2
 THREADS=$1
 
 RESULTS_DIR="results"
-
+echo "Building executables (if needed):"
+make
 echo "Starting server on core: 1"
 taskset -c 1 ./server &
 SERVER_PID=$!
