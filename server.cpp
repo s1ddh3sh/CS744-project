@@ -104,7 +104,7 @@ int main()
         long long misses = cache_misses.load();
         double hit_rate = total_accesses > 0 ? (double)hits/(double)total_accesses*100.0 : 0.0;
 
-        std::string resp = "TotalAccesses:" + std::to_string(total_accesses) + 
+        std::string resp = "Total Accesses:" + std::to_string(total_accesses) + 
                             "\nHits:" + std::to_string(hits) + 
                             "\nMisses:" + std::to_string(misses) + 
                             "\nHitRate:" + std::to_string(hit_rate) + "%\n";

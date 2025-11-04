@@ -109,7 +109,7 @@ void fetch_cache_stats()
     auto res = cli.Get("/cache-stats");
     if (res && res->status == 200)
     {
-        std::cout << "\n===== Server Cache Stats (Fetched) =====\n";
+        std::cout << "\n===== Server Cache Stats =====\n";
 
         std::string stats_output = res->body;
         std::cout << stats_output;
