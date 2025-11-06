@@ -1,10 +1,10 @@
 all: server loadgen
 
-server: server.cpp kv-store.c db.c kv-store.h db.h
-	g++ -I/usr/include/postgresql -Wall -o server server.cpp kv-store.c db.c -lpq -pthread
+server: src/server.cpp src/cache/kv-store.c db/db.c src/cache/kv-store.h db/db.h
+	g++ -I/usr/include/postgresql -Wall -o server src/server.cpp src/cache/kv-store.c db/db.c -lpq -pthread
 
-loadgen: loadgen.cpp
-	g++ -I/usr/include/postgresql -Wall -o loadgen loadgen.cpp -lpq -pthread
+loadgen: src/loadgen.cpp
+	g++ -I/usr/include/postgresql -Wall -o loadgen src/loadgen.cpp -lpq -pthread
 
 clean:
 	rm -f server loadgen

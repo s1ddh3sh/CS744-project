@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "kv-store.h"
-#include "db.h"
+#include "../../db/db.h"
 
 #define MAX_PAIRS 1000
 

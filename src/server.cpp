@@ -1,8 +1,8 @@
 #define CPPHTTPLIB_THREAD_POOL_COUNT 32
-#include "httplib.h"
+#include "../include/httplib.h"
 
-#include "kv-store.h"
-#include "db.h"
+#include "cache/kv-store.h"
+#include "../db/db.h"
 #include <iostream>
 
 kv_store cache;
