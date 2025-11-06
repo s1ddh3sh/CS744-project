@@ -1,0 +1,18 @@
+Loadgen starting (32 threads, 60s, workload=get_popular)
+[LOADGEN] Cleared DB and cache before test.
+Prepopulating 1000 popular keys...
+Prepopulation complete.
+
+===== Results =====
+Successful requests: 444176
+Failed requests: 0
+Average throughput (req/s): 7289.14
+Average response time (ms): 4.36543
+=====================
+
+===== Server Cache Stats =====
+Total Accesses:444176
+Hits:443153
+Misses:1023
+HitRate:99.769686%
+======================================

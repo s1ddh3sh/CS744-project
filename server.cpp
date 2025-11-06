@@ -1,4 +1,4 @@
-#define CPPHTTPLIB_THREAD_POOL_COUNT 8
+#define CPPHTTPLIB_THREAD_POOL_COUNT 32
 #include "httplib.h"
 
 #include "kv-store.h"

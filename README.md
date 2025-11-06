@@ -1,4 +1,4 @@
-# CS744-project
+# HTTP-based KV server with in-mem Cache
 
 Simple key-value server with an in-memory cache and PostgreSQL database, with a multi-threaded closed‑loop load generator.
 
@@ -9,7 +9,7 @@ Simple key-value server with an in-memory cache and PostgreSQL database, with a 
 - loadgen.cpp - multi-threaded closed-loop load generator for workload experiments
 
 ## Workloads: 
-- `put_all` : 50% GET + 50% DELETE requests
+- `put_all` : 50% PUT + 50% DELETE requests
 - `get_all` : random GET requests for 10000 keys
 - `get_popular` : random GET requests for popular 1000 keys
 - `mixed` : 70% GET + 20% PUT + 10% DELETE requests <br> <br>

@@ -26,7 +26,7 @@ echo "--- Running $WORKLOAD load with $THREADS threads on core: 2 ---"
 taskset -c 2 ./loadgen $THREADS $DURATION $WORKLOAD > $RESULTS_DIR/${WORKLOAD}/${THREADS}_threads.txt
 
 echo "Results saved to $RESULTS_DIR/${THREADS}_threads.txt"
-sleep 10
+sleep 5
 
 
 kill $SERVER_PID

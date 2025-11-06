@@ -124,7 +124,7 @@ void fetch_cache_stats()
 
 void client_thread(int thread_id, int duration_sec, WorkloadType workload, GlobalStats *gstats)
 {
-    std::mt19937 rng(std::random_device{}());
+    std::mt19937 rng(12345u + static_cast<unsigned>(thread_id));
     httplib::Client cli(SERVER_HOST.c_str(), SERVER_PORT);
     cli.set_connection_timeout(3);
     cli.set_read_timeout(5);
@@ -279,11 +279,10 @@ int main(int argc, char **argv)
     for (auto &t : pool)
         t.join();
 
+    auto end = high_resolution_clock::now();
     running = false;
     if (monitor.joinable())
         monitor.join();
-
-    auto end = high_resolution_clock::now();
 
     std::chrono::duration<double> elapsed_d = end - start;
     double elapsed = elapsed_d.count();
