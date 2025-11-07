@@ -9,6 +9,8 @@ kv_store cache;
 std::atomic<long long> cache_hits{0};
 std::atomic<long long> cache_misses{0};
 
+const bool DEBUG_MODE = false;
+
 int main()
 {
     db_init();
@@ -26,8 +28,11 @@ int main()
         bool created = kv_create(&cache, (char *)key.c_str(), 
                                (char *)value.c_str(), value.size());
         res.status = created ? 201 : 200;
-        std::cout << "[CREATE] key=" << key << 
-                    (created ? " inserted" : " updated") << " (cache+db)\n";
+        
+        if(DEBUG_MODE){
+            std::cout << "[CREATE] key=" << key << 
+                        (created ? " inserted" : " updated") << " (cache+db)\n";
+        }
         res.set_content(created ? "Inserted\n" : "Updated\n", "text/plain");
     } else {
         res.set_content("DB Error\n", "text/plain");
@@ -41,7 +46,8 @@ int main()
         if (val) {
             // cache hit
             cache_hits.fetch_add(1);
-            std::cout << "[CACHE HIT] key=" << key << " value=" << val << "\n";
+            if(DEBUG_MODE)
+                std::cout << "[CACHE HIT] key=" << key << " value=" << val << "\n";
             res.set_content(val, "text/plain");
            
             return;
@@ -49,17 +55,20 @@ int main()
 
         // Cache miss -> go to DB
         cache_misses.fetch_add(1);
-        std::cout << "[CACHE MISS] key=" << key << " -> querying DB\n";
+        if(DEBUG_MODE)
+            std::cout << "[CACHE MISS] key=" << key << " -> querying DB\n";
         char *dbval = db_get(key.c_str());
 
         if (dbval) {
-            std::cout << "[DB HIT] key=" << key << " value=" << dbval << "\n";
+            if(DEBUG_MODE)
+                std::cout << "[DB HIT] key=" << key << " value=" << dbval << "\n";
             // Insert into cache 
             kv_create(&cache, (char*)key.c_str(), dbval, strlen(dbval));
             res.set_content(dbval, "text/plain");
             free(dbval); 
         } else {
-            std::cout << "[DB MISS] key=" << key << " not found\n";
+            if(DEBUG_MODE)
+                std::cout << "[DB MISS] key=" << key << " not found\n";
             res.status = 404;
             res.set_content("Not found", "text/plain");
         } });
@@ -74,11 +83,12 @@ int main()
             return;
         }
         res.status = removed ? 200 : 404;
-        if (removed)
-            std::cout << "[DELETE] key=" << key << " removed (cache+db)\n";
-        else
-            std::cout << "[DELETE] key=" << key << " not found in cache (still removed from db)\n";
-
+        if(DEBUG_MODE){
+            if (removed)
+                std::cout << "[DELETE] key=" << key << " removed (cache+db)\n";
+            else
+                std::cout << "[DELETE] key=" << key << " not found in cache (removed from db)\n";
+        }
         res.set_content("Deleted\n", "text/plain"); });
 
     server.Post("/preload", [](const httplib::Request &req, httplib::Response &res)
@@ -94,7 +104,8 @@ int main()
         init(&cache);
         cache_hits = 0;
         cache_misses = 0;
-        std::cout << "[SERVER] Database and cache cleared.\n";
+        if(DEBUG_MODE)
+            std::cout << "[SERVER] Database and cache cleared.\n";
         res.set_content("Database and cache cleared.\n", "text/plain"); });
 
     server.Get("/cache-stats", [](const httplib::Request &req, httplib::Response &res)

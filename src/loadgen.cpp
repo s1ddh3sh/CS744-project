@@ -1,5 +1,5 @@
 // Usage: ./loadgen 10 60 get_popular
-#include "httplib.h"
+#include "../include/httplib.h"
 #include <thread>
 #include <vector>
 #include <atomic>
@@ -13,11 +13,10 @@ using namespace std::chrono;
 
 const std::string SERVER_HOST = "localhost";
 const int SERVER_PORT = 8080;
-const int KEYSPACE_SIZE = 10000;        // for prepopulation
-const int POPULAR_SET_SIZE = 1000;      // for get_popular
-const int MIXED_PUT_PCT = 20;           // 20% PUT
-const int MIXED_DELETE_PCT = 10;        // 10% DELETE, 70% GET
-const bool ENABLE_PROGRESS_LOG = false; // print live progress
+const int KEYSPACE_SIZE = 10000;   // for prepopulation
+const int POPULAR_SET_SIZE = 1000; // for get_popular
+const int MIXED_PUT_PCT = 20;      // 20% PUT
+const int MIXED_DELETE_PCT = 10;   // 10% DELETE, 70% GET
 
 enum WorkloadType
 {
@@ -256,20 +255,6 @@ int main(int argc, char **argv)
     std::vector<std::thread> pool;
     pool.reserve(threads);
 
-    std::atomic<bool> running{true};
-    std::thread monitor([&]()
-                        {
-        if (!ENABLE_PROGRESS_LOG)
-            return;
-        long long last_succ = 0;
-        while (running)
-        {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            long long now = gstats.successful_requests.load();
-            std::cout << "[Progress] Total=" << now
-                      << " (+ " << (now - last_succ) << " req/s)\n";
-            last_succ = now;
-        } });
 
     // Launch worker threads
     auto start = high_resolution_clock::now();
@@ -280,9 +265,6 @@ int main(int argc, char **argv)
         t.join();
 
     auto end = high_resolution_clock::now();
-    running = false;
-    if (monitor.joinable())
-        monitor.join();
 
     std::chrono::duration<double> elapsed_d = end - start;
     double elapsed = elapsed_d.count();

@@ -1,0 +1,8 @@
+Loadgen starting (16 threads, 300s, workload=put_all)
+
+===== Results =====
+Successful requests: 46821
+Failed requests: 0
+Average throughput (req/s): 156.029
+Average response time (ms): 66.3979
+=====================
