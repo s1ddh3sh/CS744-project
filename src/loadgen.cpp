@@ -255,7 +255,6 @@ int main(int argc, char **argv)
     std::vector<std::thread> pool;
     pool.reserve(threads);
 
-
     // Launch worker threads
     auto start = high_resolution_clock::now();
     for (int i = 0; i < threads; ++i)

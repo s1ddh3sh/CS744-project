@@ -1,18 +1,18 @@
-Loadgen starting (32 threads, 300s, workload=get_all)
+Loadgen starting (32 threads, 30s, workload=get_all)
 [LOADGEN] Cleared DB and cache before test.
 Prepopulating 10000 keys for workload...
 Prepopulation complete.
 
 ===== Results =====
-Successful requests: 93728
+Successful requests: 12303
 Failed requests: 0
-Average throughput (req/s): 312.237
-Average response time (ms): 102.448
+Average throughput (req/s): 408.388
+Average response time (ms): 78.2314
 =====================
 
 ===== Server Cache Stats =====
-Total Accesses:93728
-Hits:9272
-Misses:84456
-HitRate:9.892455%
+Total Accesses:12303
+Hits:1134
+Misses:11169
+HitRate:9.217264%
 ======================================
