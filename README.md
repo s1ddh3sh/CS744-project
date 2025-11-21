@@ -10,23 +10,17 @@ Simple key-value server with an in-memory cache and PostgreSQL database, with a 
 
 ## Workloads: 
 - `put_all` : 50% PUT + 50% DELETE requests
-- `get_all` : random GET requests for 10000 keys
 - `get_popular` : random GET requests for popular 1000 keys
-- `mixed` : 70% GET + 20% PUT + 10% DELETE requests <br> <br>
 `pre-population` of keys is used to avoid any DBMISS.
 
 ## Run
 
-1. Start PostgreSQL and ensure connection settings in `db.c` are correct.
-2. Bind postgres pid to core 0
-```bash
-pgrep postgres #get the lowest pid as postgres-pid
-sudo taskset -cp 0 {postgres-pid}
-```
+Start PostgreSQL and ensure connection settings in `db.c` are correct.
+
 ### Option 1 : Quick run via bash script
-Just run the `run_exp.sh` script to run for particular parameters. <br> Note : Pass the proper params as follows:
+Just run the `run_exp.sh` script to run <br> Note : This is a complete testing script which runs for all load levels and on all the workloads.
 ```bash
-bash run_exp.sh [threads] [duration_sec] [workload]
+bash run_exp.sh
 ```
 This script handles all the setup and execution steps. <br>
 Outputs are stored in: `results/{WORKLOAD}/{THREADS}_threads.txt` 
@@ -46,6 +40,6 @@ Server runs on http://localhost:8080.
 3. Run load generator in other terminal: <br>
   `./loadgen [threads] [duration_sec] [workload]`
 ```bash
-taskset -c 2 ./loadgen 10 60 get_popular #loadgen runs on core 2
+taskset -c 2-7 ./loadgen 10 60 get_popular #loadgen runs on cores 2-7
 ```
 
