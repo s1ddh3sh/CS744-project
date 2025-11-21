@@ -248,8 +248,7 @@ int main(int argc, char **argv)
     std::cout << "Loadgen starting (" << threads << " threads, "
               << duration << "s, workload=" << workload_str << ")\n";
 
-    if (workload != PUT_ALL)
-        prepopulate_data(workload, threads);
+    prepopulate_data(workload, threads);
 
     GlobalStats gstats;
     std::vector<std::thread> pool;
@@ -280,6 +279,6 @@ int main(int argc, char **argv)
               << "Average throughput (req/s): " << throughput << "\n"
               << "Average response time (ms): " << avg_latency_ms << "\n"
               << "=====================\n";
-    if (workload != PUT_ALL)
-        fetch_cache_stats();
+
+    fetch_cache_stats();
 }

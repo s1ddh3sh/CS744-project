@@ -46,9 +46,9 @@ for WORKLOAD in "${WORKLOADS[@]}"; do
 
     #Run the loadgen
 
-    echo "--- Running $WORKLOAD load with $THREADS threads on core: 2-5 ---"
+    echo "--- Running $WORKLOAD load with $THREADS threads on core: 2-7 ---"
 
-    taskset -c 2-5 ./loadgen $THREADS $DURATION $WORKLOAD > "$RESULTS_DIR/${THREADS}_threads.txt"
+    taskset -c 2-7 ./loadgen $THREADS $DURATION $WORKLOAD > "$RESULTS_DIR/${THREADS}_threads.txt"
 
 
     sleep 5
