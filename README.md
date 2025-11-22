@@ -11,6 +11,7 @@ Simple key-value server with an in-memory cache and PostgreSQL database, with a 
 ## Workloads: 
 - `put_all` : 50% PUT + 50% DELETE requests
 - `get_popular` : random GET requests for popular 1000 keys
+
 `pre-population` of keys is used to avoid any DBMISS.
 
 ## Run
