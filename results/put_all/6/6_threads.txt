@@ -2,10 +2,10 @@ Loadgen starting (6 threads, 300s, workload=put_all)
 [LOADGEN] Cleared DB and cache before test.
 
 ===== Results =====
-Successful requests: 47152
+Successful requests: 45380
 Failed requests: 0
-Average throughput (req/s): 157.135
-Average response time (ms): 24.6374
+Average throughput (req/s): 151.255
+Average response time (ms): 24.7043
 =====================
 
 ===== Server Cache Stats =====

@@ -4,15 +4,15 @@ Prepopulating 1000 popular keys...
 Prepopulation complete.
 
 ===== Results =====
-Successful requests: 5313409
+Successful requests: 5259751
 Failed requests: 0
-Average throughput (req/s): 17711.3
-Average response time (ms): 0.279985
+Average throughput (req/s): 17532.5
+Average response time (ms): 0.282897
 =====================
 
 ===== Server Cache Stats =====
-Total Accesses:5313409
-Hits:5312405
-Misses:1004
-HitRate:99.981104%
+Total Accesses:5259751
+Hits:5258745
+Misses:1006
+HitRate:99.980874%
 ======================================

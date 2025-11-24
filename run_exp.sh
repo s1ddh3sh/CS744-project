@@ -16,7 +16,7 @@ for THREADS in "${THREAD_LIST[@]}"; do
 
 
     echo "Starting server on core: 0-1"
-    taskset -c 0-1 ./server &
+    taskset -c 1,2 ./server &
     SERVER_PID=$!
     echo "Server started with PID $SERVER_PID"
 
@@ -50,7 +50,7 @@ for THREADS in "${THREAD_LIST[@]}"; do
 
         echo "--- Running $WORKLOAD load with $THREADS threads on core: 2-7 ---"
 
-        taskset -c 2-7 ./loadgen $THREADS $DURATION $WORKLOAD > "$RESULTS_DIR/${THREADS}_threads.txt"
+        taskset -c 3-7 ./loadgen $THREADS $DURATION $WORKLOAD > "$RESULTS_DIR/${THREADS}_threads.txt"
 
 
         sleep 5
